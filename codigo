@@ -1,0 +1,203 @@
+Jacome Jhonatan
+Laboratorio2
+
+
+#include <MsTimer2.h>
+ #include <LiquidCrystal.h>
+
+ LiquidCrystal lcd(13,12,11,10,9,8);
+  int a2=A2;
+ int a3=A3;
+ int a4=A4;
+ int a5=A5;
+int led1=7;
+int led2=6;
+int led3=5;
+int led4=4;
+ int minutos=0;
+ int horas=0; 
+ int on=0;
+ int on2=0;
+ int aleatorio;
+ int a=0;
+ int cont=0;
+ int pot1;
+ int pot2;
+ int b,c,d,e;
+
+
+void setup() {
+  MsTimer2::set(100,reloj);
+  MsTimer2::stop();
+  attachInterrupt(0,activacion,LOW);
+  attachInterrupt(1,funcionamiento,LOW);
+  Serial.begin(9600);
+  lcd.begin(16,2);
+  pinMode(led1,OUTPUT);
+  pinMode(led2,OUTPUT);
+  pinMode(led3,OUTPUT);
+  pinMode(led4,OUTPUT);
+  pinMode(a2,INPUT);
+  pinMode(a3,INPUT);
+  pinMode(a4,INPUT);
+  pinMode(a5,INPUT);
+}
+
+void loop() {
+  if(on==0){
+    MsTimer2::start();
+  }
+  //Luces Aleatorias
+  if(on==2 && on2==1&& a==0){
+    aleatorio=random(4,7);
+    digitalWrite(aleatorio,HIGH);
+    cont++;
+   delay(300);
+   digitalWrite(led1,LOW);
+   digitalWrite(led2,LOW);
+   digitalWrite(led3,LOW);
+   digitalWrite(led4,LOW);
+   if (cont==20){
+    a=1;
+   }
+  }
+  //configuracion reloj
+  if(on2==2 && on==2){
+    MsTimer2::stop();
+    pot1=analogRead(0);
+    pot2=analogRead(1);
+    pot1=map(pot1,0,1023,0,59);
+    pot2=map(pot2,0,1023,0,23);
+    if(b==0){
+    c=pot1;
+
+    d=pot2;
+    b=1;
+    }
+    if(c==pot1 &&d==pot2){
+
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print(horas);
+    lcd.print(":");
+    lcd.print(minutos);
+    delay(50);
+    }
+    if(c==pot1 && d!=pot2){
+      lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print(pot2);
+    lcd.print(":");
+    lcd.print(minutos);
+    delay(50);
+    }
+    if(c!=pot1 && d==pot2){
+      lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print(horas);
+    lcd.print(":");
+    lcd.print(pot1);
+    delay(50);
+    }
+    //impresion sin modificar hora
+    if(c!=pot1 && d!=pot1) {
+
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print(pot2);
+    lcd.print(":");
+    lcd.print(pot1);
+    delay(20);
+    }
+     if(on2==3 && on==2){
+  horas=pot2;
+  minutos=pot1;
+  MsTimer2::start();
+  } 
+  }
+ //modo Sensores
+  if(on2==3 && on==2){
+    //Sensores digitales 
+         if(digitalRead(a2)==HIGH||digitalRead(a3)==HIGH||digitalRead(a4)==HIGH||digitalRead(a5)==HIGH){
+              Serial.println("Sensor Activado"); //mensaje de activacion
+              delay(200);    
+         } 
+  }
+}
+
+void reloj(){
+  //condicional minutos 
+  if(minutos<60){ 
+    minutos++;
+  }
+  else{
+    minutos=0;
+    //condicional horas
+    if(horas<24) 
+    horas++;
+    else
+    horas=0;
+  }
+
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Horas");
+  lcd.setCursor(3,1);
+  lcd.print(horas);
+
+  lcd.setCursor(6,1);
+  lcd.print(":");
+
+  lcd.setCursor(7,0);
+  lcd.print("Minutos");
+  lcd.setCursor(9,1);
+  lcd.print(minutos);
+}
+
+void activacion(){
+  switch(on){
+    case 0:
+    Serial.println("Reloj Prendido:");
+    reloj();
+    on++; 
+    break;
+    case 1:
+    Serial.println("Seleccion de Modos:");
+    MsTimer2::start();
+    on++;
+    break;
+    case 2:
+    Serial.println("OFF:");
+    MsTimer2::stop();
+      lcd.clear();
+      on=0;
+    break;
+  
+  }
+}
+
+void funcionamiento(){
+   if(on==2){
+     switch (on2){
+      case 0:
+        Serial.println(" Juego de Luces");
+        on2++;
+      break;
+      case 1:
+        Serial.println(" MODO configuracion de reloj");
+        on2++;
+      break;
+      case 2:
+      Serial.println("Reloj configurada");
+      Serial.println("  MODO sensores digitales");
+        on2++;
+      break;
+      case 3:
+        on2=0;
+        cont=0;
+        a=0;
+        b=0;
+      break;
+    }
+  }
+}
